@@ -1,0 +1,48 @@
+version: "3.8"
+
+services:
+  nginx:
+    #image: nginx:latest
+    container_name: app-nginx
+    build: ./docker/nginx
+    command: nginx -g "daemon off;"
+    links:
+      - php
+    ports:
+      - "8080:80" # 80 - external port, 80 - docker network port
+    volumes:
+      - ./app:/var/www/html
+      - ./logs/nginx:/var/log/nginx
+  php:
+    container_name: app-php
+    build: ./docker/php
+    ports:
+      - "9000:9000"
+    volumes:
+      - ./app:/var/www/html
+    working_dir: /var/www/html
+  mysql:
+    container_name: app-mysql
+    build: ./docker/mysql
+    restart: always
+    environment:
+      MARIADB_ROOT_PASSWORD: root
+      MARIADB_DATABASE: database_name
+      MARIADB_USER: example-user
+      MARIADB_PASSWORD: my_cool_secret
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./database/mysql:/var/lib/mysql
+  phpmyadmin:
+    container_name: app-phpmyadmin
+    build: ./docker/phpmyadmin
+    restart: always
+    links:
+      - mysql
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      PMA_ARBITRARY: 1
+    ports:
+      - "8085:80"
