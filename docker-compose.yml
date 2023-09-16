@@ -2,17 +2,18 @@ version: "3.8"
 
 services:
   nginx:
-    #image: nginx:latest
     container_name: app-nginx
     build: ./docker/nginx
     command: nginx -g "daemon off;"
     links:
       - php
     ports:
-      - "8080:80" # 80 - external port, 80 - docker network port
+      - "8080:80" # 8080 - external port, 80 - docker network port
     volumes:
       - ./app:/var/www/html
       - ./logs/nginx:/var/log/nginx
+    networks:
+      - app-network
   php:
     container_name: app-php
     build: ./docker/php
@@ -21,6 +22,8 @@ services:
     volumes:
       - ./app:/var/www/html
     working_dir: /var/www/html
+    networks:
+      - app-network
   mysql:
     container_name: app-mysql
     build: ./docker/mysql
@@ -34,6 +37,8 @@ services:
       - "3306:3306"
     volumes:
       - ./database/mysql:/var/lib/mysql
+    networks:
+      - app-network
   phpmyadmin:
     container_name: app-phpmyadmin
     build: ./docker/phpmyadmin
@@ -46,3 +51,14 @@ services:
       PMA_ARBITRARY: 1
     ports:
       - "8085:80"
+    networks:
+      - app-network
+
+volumes:
+  app:
+  logs:
+  database:
+
+networks:
+  app-network:
+    driver: bridge
